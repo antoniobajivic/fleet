@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { useLocation } from 'wouter'
-import { AudioLinesIcon, InboxIcon, BotIcon, CircleDotIcon, GaugeIcon, GitPullRequestIcon, NotebookPenIcon, SquareCheckBigIcon, NotebookTextIcon, Settings2Icon } from 'lucide-react'
+import { AudioLinesIcon, InboxIcon, LayoutGridIcon, BotIcon, CircleDotIcon, GaugeIcon, GitPullRequestIcon, NotebookPenIcon, SquareCheckBigIcon, NotebookTextIcon, Settings2Icon } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
@@ -84,6 +84,45 @@ export function ModuleButtons({
     </>
   )
 }
+
+/**
+ * The desktop rail, Slack style: Sessions (the board / list) first, then each work module as an
+ * icon over a short label; the open one is highlighted. The scratchpad stays a ⌘K / shortcut action.
+ */
+export function ModuleRailItems() {
+  const [location] = useLocation()
+  const modules = useModules().filter((m) => m.group === 'work' && m.id !== 'scratchpad')
+  const items = [
+    { id: 'sessions', label: 'Sessions', short: 'Sessions', icon: <LayoutGridIcon />, href: '#/', title: 'Sessions' },
+    ...modules.map((m) => ({ ...m, short: RAIL_LABEL[m.id] ?? m.label, title: m.hint ? withHint(m.label, m.hint) : m.label })),
+  ]
+  return (
+    <>
+      {items.map((m) => {
+        const path = m.href!.slice(1)
+        const active = path === '/' ? location === '/' || location.startsWith('/s/') : location === path || location.startsWith(`${path}/`)
+        return (
+          <a
+            key={m.id}
+            href={m.href}
+            aria-label={m.label}
+            aria-current={active ? 'page' : undefined}
+            title={m.title}
+            className="group/rail flex w-full flex-col items-center gap-0.5 rounded-lg py-1 text-[0.625rem] leading-tight font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 aria-[current=page]:text-foreground"
+          >
+            <span className="grid size-8 place-items-center rounded-lg transition-colors group-hover/rail:bg-muted group-aria-[current=page]/rail:bg-accent group-aria-[current=page]/rail:text-accent-foreground [&_svg]:size-[1.125rem]">
+              {m.icon}
+            </span>
+            <span className="max-w-full truncate px-0.5">{m.short}</span>
+          </a>
+        )
+      })}
+    </>
+  )
+}
+
+/** Labels short enough for the rail's 4.5rem column. */
+const RAIL_LABEL: Partial<Record<ModuleId, string>> = { prs: 'PRs', memos: 'Memos' }
 
 /** Finger-sized rows for the mobile ⋯ menu. */
 export const MENU_ITEM = 'min-h-11 gap-3 px-3 text-[0.9375rem] [&_svg:not([class*=size-])]:size-5'

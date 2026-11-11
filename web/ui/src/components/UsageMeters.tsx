@@ -12,15 +12,15 @@ const POLL_MS = 60_000
 // Last answers, kept across remounts so switching sessions paints at once.
 const last = new Map<string, UsageResponse>()
 
-function LimitMeter({ limit: l, label, now }: { limit?: UsageLimit; label: string; now: number }) {
+function LimitMeter({ limit: l, label, now, className }: { limit?: UsageLimit; label: string; now: number; className?: string }) {
   if (!l) return null
   const resets = resetsLabel(l.resets_at, now)
   const title = [`${l.label} ${Math.round(l.percent)}% used`, resets ? `resets ${resets}` : null].filter(Boolean).join(' · ')
-  return <Meter pct={Math.max(0, Math.round(l.percent))} level={usageLevel(l)} title={title} label={label} />
+  return <Meter pct={Math.max(0, Math.round(l.percent))} level={usageLevel(l)} title={title} label={label} className={className} />
 }
 
 /** The session's host's 5h and weekly subscription limits, for the session header. Nothing when unknown. */
-export function UsageMeters({ host, now }: { host: string; now: number }) {
+export function UsageMeters({ host, now, meterClassName }: { host: string; now: number; meterClassName?: string }) {
   const [usage, setUsage] = useState(last.get(host) ?? null)
 
   usePoller(
@@ -38,8 +38,8 @@ export function UsageMeters({ host, now }: { host: string; now: number }) {
 
   return (
     <>
-      <LimitMeter limit={usage?.limits.find((l) => l.kind === 'session')} label="5h" now={now} />
-      <LimitMeter limit={usage?.limits.find((l) => l.kind === 'weekly_all')} label="week" now={now} />
+      <LimitMeter limit={usage?.limits.find((l) => l.kind === 'session')} label="5h" now={now} className={meterClassName} />
+      <LimitMeter limit={usage?.limits.find((l) => l.kind === 'weekly_all')} label="week" now={now} className={meterClassName} />
     </>
   )
 }

@@ -21,7 +21,7 @@ import {
   type ViewMode,
 } from '@/lib/groups'
 import { dormantMember, matchesDormantMember } from '@/lib/dormant'
-import { allSessions } from '@/lib/sessions'
+import { allSessions, isSetAsideFilter, type StatusFilterId } from '@/lib/sessions'
 import { storage } from '@/lib/storage'
 
 export const GROUPS_POLL_MS = 30_000
@@ -135,18 +135,20 @@ export function useBoardColumns(
   host: string | null = null,
   /** The session search: dormant cards that do not match are left out. */
   query = '',
+  /** Bots / Slack / Apps: live sessions only, no dormant cards (those carry no origin). */
+  status: StatusFilterId = 'all',
 ): { columns: BoardColumn[]; moveColumn: (id: string, before: string | null) => void } {
   const [order, setOrder] = useState<string[]>(() => parseIdList(storage.getJSON(ORDER_KEY)))
   const { index } = useDormant()
   const sticky = useMemo(() => {
     if (!enabled) return null
     const dormantOf = (m: GroupMember) => {
-      if (host && m.host !== host) return null
+      if (isSetAsideFilter(status) || (host && m.host !== host)) return null
       const d = dormantMember(m, index)
       return d && matchesDormantMember(d, query) ? d : null
     }
     return stickyColumns(withStackColumns(boardColumns(sessions, effectiveGroups(groups, allSessions(fleet)).groups, dormantOf), sessions), order)
-  }, [enabled, sessions, groups, fleet, order, index, host, query])
+  }, [enabled, sessions, groups, fleet, order, index, host, query, status])
   if (sticky && (sticky.order.length !== order.length || sticky.order.some((id, i) => id !== order[i]))) setOrder(sticky.order)
   useEffect(() => {
     storage.set(ORDER_KEY, JSON.stringify(order))

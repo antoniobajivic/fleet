@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import type { GroupsState } from '@/hooks/useGroups'
 import type { SessionListState } from '@/hooks/useSessionList'
 import type { BoardColumn } from '@/lib/groups'
-import { allSessions } from '@/lib/sessions'
+import { allSessions, isSetAsideFilter } from '@/lib/sessions'
 import { sessionKey } from '@/lib/shortcuts'
 
 export interface BoardProps {
@@ -35,7 +35,7 @@ export interface BoardProps {
  * reordered and cards dragged between them (BoardColumns).
  */
 export function Board({ list, groups, columns, onMoveColumn, now, cursorKey, selectedKey, overlayInset, onOpen }: BoardProps) {
-  const { fleet, error, query, host, unreachable } = list
+  const { fleet, error, query, host, status, unreachable } = list
   const boardRef = useRef<HTMLDivElement>(null)
 
   // The cursor card scrolls into view, clear of the flyout (↑/↓, ⌘K). A click moves the cursor
@@ -105,7 +105,7 @@ export function Board({ list, groups, columns, onMoveColumn, now, cursorKey, sel
             onMoveColumn={onMoveColumn}
           />
         )}
-        {fleet ? <DormantSection now={now} host={host} query={query} desktop className="max-h-full w-72 shrink-0 overflow-y-auto rounded-xl border border-dashed p-2" /> : null}
+        {fleet && !isSetAsideFilter(status) ? <DormantSection now={now} host={host} query={query} desktop className="max-h-full w-72 shrink-0 overflow-y-auto rounded-xl border border-dashed p-2" /> : null}
         {fleet && columns.length && overlayInset ? <div aria-hidden className="shrink-0" style={{ width: overlayInset }} /> : null}
       </div>
     </div>

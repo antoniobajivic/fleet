@@ -32,13 +32,13 @@ export function ViewToggle({
       spacing={0}
       className={cn('shrink-0 rounded-lg border border-border bg-card p-0.5', className)}
     >
-      <ToggleGroupItem value="list" aria-label="List view" title="List view" className={item}>
-        <ListIcon className="size-3.5" />
-        {labels ? 'List' : null}
-      </ToggleGroupItem>
       <ToggleGroupItem value="board" aria-label="Board view" title="Board view (grouped)" className={item}>
         <KanbanIcon className="size-3.5" />
         {labels ? 'Board' : null}
+      </ToggleGroupItem>
+      <ToggleGroupItem value="list" aria-label="List view" title="List view" className={item}>
+        <ListIcon className="size-3.5" />
+        {labels ? 'List' : null}
       </ToggleGroupItem>
     </ToggleGroup>
   )

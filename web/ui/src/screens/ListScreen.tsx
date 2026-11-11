@@ -40,7 +40,7 @@ export function ListScreen() {
   const settings = useSettings()
   const board = mode === 'board'
   const groups = useGroups(board)
-  const { columns } = useBoardColumns(board, view.sessions, groups.groups, fleet, host, query)
+  const { columns } = useBoardColumns(board, view.sessions, groups.groups, fleet, host, query, status)
   const rowsRef = useRef<HTMLDivElement>(null)
   useFlip(rowsRef, view.sessions.map((s) => `${s.host}/${s.session_id}`).join(' '))
   // The filter rows live in a drawer under the search field, closed by default: swipe down on
