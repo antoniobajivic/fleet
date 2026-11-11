@@ -13,6 +13,7 @@ import { toast } from 'sonner'
 import { ApiError, api, isAbortError, isSessionGone, sendErrorMessage, sessionErrorMessage } from '@/api/client'
 import type { FileStat, Message, PromptQueue, SessionKey } from '@/api/types'
 import { ContextMeter } from '@/components/ContextMeter'
+import { UsageMeters } from '@/components/UsageMeters'
 import { DropOverlay } from '@/components/DropOverlay'
 import { EditableTitle } from '@/components/EditableTitle'
 import { HostBadge } from '@/components/HostBadge'
@@ -528,7 +529,8 @@ export function SessionScreen({
                   {modelLabel(session.context.model)}
                 </span>
               ) : null}
-              <ContextMeter context={session?.context} />
+              <ContextMeter context={session?.context} label="ctx" />
+              <UsageMeters key={host} host={host} now={now} />
               {pane && session?.cwd ? (
                 <span className="min-w-0 shrink truncate font-mono text-[0.6875rem] text-dimmer" title={session.cwd}>
                   · {shortCwd(session.cwd, 60)}
