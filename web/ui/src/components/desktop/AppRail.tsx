@@ -1,5 +1,5 @@
 import { useLocation } from 'wouter'
-import { AppWindowIcon, BotIcon, CalendarClockIcon, LayoutGridIcon, MessagesSquareIcon, PlusIcon } from 'lucide-react'
+import { AppWindowIcon, BotIcon, LayoutGridIcon, MessagesSquareIcon, PlusIcon } from 'lucide-react'
 
 import { HostShellButtons } from '@/components/desktop/HostShellButtons'
 import { FocusToggle } from '@/components/FocusToggle'
@@ -10,13 +10,11 @@ import { Button } from '@/components/ui/button'
 import type { SessionListState } from '@/hooks/useSessionList'
 import { isSetAsideFilter, visibleStatusFilters, type StatusFilterId } from '@/lib/sessions'
 import { withHint } from '@/lib/shortcuts'
-import { cn } from '@/lib/utils'
 
 /**
  * The desktop app's left rail, Slack style: New, this host's 5h and weekly usage and the status
- * counts on top, then the session kinds (Sessions, Bots, Slack, Apps when there are some) and the
- * work modules, Operator last, and the helpers at the foot (bot schedules, a terminal per host,
- * focus, settings). Starts below the desktop app's traffic lights.
+ * counts on top, then Sessions, Bots (their screen), the Slack / Apps session filters and the
+ * work modules, Operator last, and the helpers at the foot (a terminal per host, focus, settings). Starts below the desktop app's traffic lights.
  */
 export function AppRail({ list, now, onNew }: { list: SessionListState; now: number; onNew: () => void }) {
   const { fleet, summary, status, setStatus, view } = list
@@ -70,7 +68,7 @@ export function AppRail({ list, now, onNew }: { list: SessionListState; now: num
 
       <div className="flex w-full flex-col items-center gap-1.5 border-t pt-3">
         <RailItem label="Sessions" icon={<LayoutGridIcon />} active={onSessions && !isSetAsideFilter(status)} onClick={kind('all')} />
-        <RailItem label="Bots" title="Sessions started by bots" icon={<BotIcon />} count={counts?.scheduled} active={onSessions && status === 'scheduled'} onClick={kind('scheduled')} />
+        <RailItem label="Bots" title={withHint('Bots: schedules, runs and their live sessions', 'jobs')} icon={<BotIcon />} count={counts?.scheduled} href="#/bots" active={location === '/bots'} />
         <RailItem label="Slack" title="Sessions linked to Slack" icon={<MessagesSquareIcon />} count={counts?.slack} active={onSessions && status === 'slack'} onClick={kind('slack')} />
         {shown.has('embedded') ? (
           <RailItem label="Apps" title="Sessions started from an app's Fleet panel" icon={<AppWindowIcon />} count={counts?.embedded} active={onSessions && status === 'embedded'} onClick={kind('embedded')} />
@@ -79,18 +77,6 @@ export function AppRail({ list, now, onNew }: { list: SessionListState; now: num
       </div>
 
       <div className="mt-auto flex w-full flex-col items-center gap-1.5 border-t pt-3">
-        <a
-          href="#/bots"
-          aria-label="Bot schedules"
-          aria-current={location === '/bots' ? 'page' : undefined}
-          title={withHint('Bot schedules', 'jobs')}
-          className={cn(
-            'grid size-7 place-items-center rounded-lg text-dimmer outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 [&_svg]:size-4',
-            location === '/bots' && 'bg-accent text-accent-foreground',
-          )}
-        >
-          <CalendarClockIcon />
-        </a>
         <HostShellButtons />
         <FocusToggle size="icon-sm" />
         <ModuleButtons size="icon-sm" group="utility" exclude={['usage']} />

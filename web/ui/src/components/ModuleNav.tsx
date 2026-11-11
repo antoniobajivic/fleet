@@ -151,7 +151,7 @@ export function ModuleRailItems() {
   )
 }
 
-/** Scratchpad: a panel, not a screen. Bots: its schedules sit with the helpers at the rail's foot. */
+/** Scratchpad: a panel, not a screen. Bots: the rail places it right after Sessions. */
 const RAIL_SKIP: ModuleId[] = ['scratchpad', 'jobs']
 const RAIL_ORDER: ModuleId[] = ['prs', 'tasks', 'inbox', 'memos', 'notes', 'operator']
 /** Labels short enough for the rail's column. */
