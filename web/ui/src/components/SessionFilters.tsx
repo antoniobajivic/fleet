@@ -36,8 +36,9 @@ const TOUCH = {
 /**
  * Sessions | Bots (| Slack | Apps) toggle, then status and host pickers behind one icon each.
  * `spread`: the pickers sit at the row's right end. `touch`: phone-sized (the mobile list).
+ * `kinds={false}`: no toggle (the desktop rail switches the kinds).
  */
-export function SessionFilters({ list, spread = false, touch = false }: { list: SessionListState; spread?: boolean; touch?: boolean }) {
+export function SessionFilters({ list, spread = false, touch = false, kinds: withKinds = true }: { list: SessionListState; spread?: boolean; touch?: boolean; kinds?: boolean }) {
   const seg = cn(segment, touch && TOUCH.segment)
   const trig = cn(trigger, touch && TOUCH.trigger)
   const item = touch ? TOUCH.item : undefined
@@ -59,28 +60,30 @@ export function SessionFilters({ list, spread = false, touch = false }: { list: 
 
   return (
     <div className="flex items-center gap-1.5">
-      <ToggleGroup
-        type="single"
-        value={kind}
-        onValueChange={pickKind}
-        aria-label="Sessions or bots"
-        spacing={0}
-        className={cn("shrink-0 rounded-lg border border-border bg-card p-0.5", touch && "p-1")}
-      >
-        <ToggleGroupItem value={SESSIONS} className={seg}>
-          Sessions
-        </ToggleGroupItem>
-        <ToggleGroupItem value="scheduled" className={seg} title="Sessions started by bots">
-          Bots
-          {counts?.scheduled ? <span className="text-[0.6875rem] text-dimmer tabular-nums">{counts.scheduled}</span> : null}
-        </ToggleGroupItem>
-        {kinds.map((f) => (
-          <ToggleGroupItem key={f.id} value={f.id} className={seg} title={f.title}>
-            {f.label}
-            <span className="text-[0.6875rem] text-dimmer tabular-nums">{counts?.[f.id] ?? ''}</span>
+      {withKinds ? (
+        <ToggleGroup
+          type="single"
+          value={kind}
+          onValueChange={pickKind}
+          aria-label="Sessions or bots"
+          spacing={0}
+          className={cn("shrink-0 rounded-lg border border-border bg-card p-0.5", touch && "p-1")}
+        >
+          <ToggleGroupItem value={SESSIONS} className={seg}>
+            Sessions
           </ToggleGroupItem>
-        ))}
-      </ToggleGroup>
+          <ToggleGroupItem value="scheduled" className={seg} title="Sessions started by bots">
+            Bots
+            {counts?.scheduled ? <span className="text-[0.6875rem] text-dimmer tabular-nums">{counts.scheduled}</span> : null}
+          </ToggleGroupItem>
+          {kinds.map((f) => (
+            <ToggleGroupItem key={f.id} value={f.id} className={seg} title={f.title}>
+              {f.label}
+              <span className="text-[0.6875rem] text-dimmer tabular-nums">{counts?.[f.id] ?? ''}</span>
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+      ) : null}
 
       {spread ? <span className="ml-auto" /> : null}
 

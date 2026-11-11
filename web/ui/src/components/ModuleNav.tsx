@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { useLocation } from 'wouter'
-import { AudioLinesIcon, InboxIcon, LayoutGridIcon, BotIcon, CircleDotIcon, GaugeIcon, GitPullRequestIcon, NotebookPenIcon, SquareCheckBigIcon, NotebookTextIcon, Settings2Icon } from 'lucide-react'
+import { AudioLinesIcon, InboxIcon, BotIcon, CircleDotIcon, GaugeIcon, GitPullRequestIcon, NotebookPenIcon, SquareCheckBigIcon, NotebookTextIcon, Settings2Icon } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
@@ -85,43 +85,76 @@ export function ModuleButtons({
   )
 }
 
-/**
- * The desktop rail, Slack style: Sessions (the board / list) first, then each work module as an
- * icon over a short label; the open one is highlighted. The scratchpad stays a ⌘K / shortcut action.
- */
+/** One rail entry, Slack style: an icon over a short label, a count beside the label, highlighted when current. */
+export function RailItem({
+  label,
+  short = label,
+  title = label,
+  icon,
+  count,
+  active,
+  href,
+  onClick,
+}: {
+  label: string
+  short?: string
+  title?: string
+  icon: ReactNode
+  count?: number
+  active: boolean
+  href?: string
+  onClick?: () => void
+}) {
+  return (
+    <a
+      href={href}
+      onClick={onClick}
+      aria-label={label}
+      aria-current={active ? 'page' : undefined}
+      title={title}
+      className="group/rail flex w-full cursor-pointer flex-col items-center gap-0.5 rounded-lg py-1 text-[0.625rem] leading-tight font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 aria-[current=page]:text-foreground"
+    >
+      <span className="grid size-8 place-items-center rounded-lg transition-colors group-hover/rail:bg-muted group-aria-[current=page]/rail:bg-accent group-aria-[current=page]/rail:text-accent-foreground [&_svg]:size-[1.125rem]">
+        {icon}
+      </span>
+      <span className="flex max-w-full items-baseline gap-0.5 px-0.5">
+        <span className="truncate">{short}</span>
+        {count ? <span className="text-dimmer tabular-nums">{count}</span> : null}
+      </span>
+    </a>
+  )
+}
+
+/** The work modules in rail order (PRs, Tasks, then the rest, Operator last); the scratchpad stays a ⌘K / shortcut action. */
 export function ModuleRailItems() {
   const [location] = useLocation()
-  const modules = useModules().filter((m) => m.group === 'work' && m.id !== 'scratchpad')
-  const items = [
-    { id: 'sessions', label: 'Sessions', short: 'Sessions', icon: <LayoutGridIcon />, href: '#/', title: 'Sessions' },
-    ...modules.map((m) => ({ ...m, short: RAIL_LABEL[m.id] ?? m.label, title: m.hint ? withHint(m.label, m.hint) : m.label })),
-  ]
+  const modules = useModules()
+    .filter((m) => m.group === 'work' && !RAIL_SKIP.includes(m.id))
+    .sort((x, y) => RAIL_ORDER.indexOf(x.id) - RAIL_ORDER.indexOf(y.id))
   return (
     <>
-      {items.map((m) => {
+      {modules.map((m) => {
         const path = m.href!.slice(1)
-        const active = path === '/' ? location === '/' || location.startsWith('/s/') : location === path || location.startsWith(`${path}/`)
         return (
-          <a
+          <RailItem
             key={m.id}
+            label={m.label}
+            short={RAIL_LABEL[m.id] ?? m.label}
+            title={m.hint ? withHint(m.label, m.hint) : m.label}
+            icon={m.icon}
             href={m.href}
-            aria-label={m.label}
-            aria-current={active ? 'page' : undefined}
-            title={m.title}
-            className="group/rail flex w-full flex-col items-center gap-0.5 rounded-lg py-1 text-[0.625rem] leading-tight font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 aria-[current=page]:text-foreground"
-          >
-            <span className="grid size-8 place-items-center rounded-lg transition-colors group-hover/rail:bg-muted group-aria-[current=page]/rail:bg-accent group-aria-[current=page]/rail:text-accent-foreground [&_svg]:size-[1.125rem]">
-              {m.icon}
-            </span>
-            <span className="max-w-full truncate px-0.5">{m.short}</span>
-          </a>
+            active={location === path || location.startsWith(`${path}/`)}
+          />
         )
       })}
     </>
   )
 }
 
-/** Labels short enough for the rail's 4.5rem column. */
+/** Scratchpad: a panel, not a screen. Bots: its schedules sit with the helpers at the rail's foot. */
+const RAIL_SKIP: ModuleId[] = ['scratchpad', 'jobs']
+const RAIL_ORDER: ModuleId[] = ['prs', 'tasks', 'inbox', 'memos', 'notes', 'operator']
+/** Labels short enough for the rail's column. */
 const RAIL_LABEL: Partial<Record<ModuleId, string>> = { prs: 'PRs', memos: 'Memos' }
 
 /** Finger-sized rows for the mobile ⋯ menu. */

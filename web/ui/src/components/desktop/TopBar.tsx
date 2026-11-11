@@ -51,7 +51,7 @@ export function TopBar({ list, now, view, onView, searchRef, onSearchNav, groups
       data-tauri-drag-region="deep"
       className="titlebar flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2 border-b px-4 py-2.5"
     >
-      <SessionFilters list={list} />
+      <SessionFilters list={list} kinds={false} />
 
       <div className="relative w-64 min-w-40">
         <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-dimmer" />

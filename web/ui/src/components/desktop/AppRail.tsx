@@ -1,34 +1,56 @@
-import { PlusIcon } from 'lucide-react'
+import { useLocation } from 'wouter'
+import { AppWindowIcon, BotIcon, CalendarClockIcon, LayoutGridIcon, MessagesSquareIcon, PlusIcon } from 'lucide-react'
 
 import { HostShellButtons } from '@/components/desktop/HostShellButtons'
 import { FocusToggle } from '@/components/FocusToggle'
-import { ModuleButtons, ModuleRailItems } from '@/components/ModuleNav'
+import { ModuleButtons, ModuleRailItems, RailItem } from '@/components/ModuleNav'
 import { StatusDot } from '@/components/StatusDot'
 import { UsageMeters } from '@/components/UsageMeters'
 import { Button } from '@/components/ui/button'
 import type { SessionListState } from '@/hooks/useSessionList'
+import { isSetAsideFilter, visibleStatusFilters, type StatusFilterId } from '@/lib/sessions'
 import { withHint } from '@/lib/shortcuts'
+import { cn } from '@/lib/utils'
 
 /**
- * The desktop app's left rail, Slack style: New and the status counts on top, then Sessions and
- * the work modules, and at the bottom what is always worth a glance (this host's 5h and weekly
- * usage) plus the helpers (a terminal per host, focus, settings). Starts below the desktop app's
- * traffic lights.
+ * The desktop app's left rail, Slack style: New, this host's 5h and weekly usage and the status
+ * counts on top, then the session kinds (Sessions, Bots, Slack, Apps when there are some) and the
+ * work modules, Operator last, and the helpers at the foot (bot schedules, a terminal per host,
+ * focus, settings). Starts below the desktop app's traffic lights.
  */
 export function AppRail({ list, now, onNew }: { list: SessionListState; now: number; onNew: () => void }) {
-  const { fleet, summary } = list
+  const { fleet, summary, status, setStatus, view } = list
+  const [location, navigate] = useLocation()
+  const onSessions = location === '/' || location.startsWith('/s/')
+  const counts = fleet ? view.counts : null
+  const shown = new Set(visibleStatusFilters(counts, status).map((f) => f.id))
+  const kind = (id: StatusFilterId) => () => {
+    setStatus(id)
+    if (!onSessions) navigate('/')
+  }
+
   return (
     <nav
       aria-label="Modules"
       data-tauri-drag-region="deep"
-      className="titlebar-rail flex w-[4.5rem] shrink-0 flex-col items-center gap-3 overflow-y-auto border-r bg-card px-1.5 pt-3 pb-3"
+      className="titlebar-rail flex w-[5.25rem] shrink-0 flex-col items-center gap-3 overflow-y-auto border-r bg-card px-1.5 pt-3 pb-3"
     >
       <Button size="icon-lg" aria-label="New session" title={withHint('New session', 'new')} onClick={onNew} className="shrink-0 rounded-xl">
         <PlusIcon />
       </Button>
 
       {fleet ? (
-        <div className="flex flex-col items-center gap-1 text-[0.6875rem] text-muted-foreground tabular-nums" aria-label="Status summary">
+        <a
+          href="#/usage"
+          aria-label="Usage limits"
+          className="flex w-full flex-col gap-1 rounded-md px-1 py-1 text-[0.625rem] outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/50"
+        >
+          <UsageMeters host={fleet.self} now={now} meterClassName="w-full justify-between" />
+        </a>
+      ) : null}
+
+      {fleet ? (
+        <div className="flex items-center gap-2 text-[0.6875rem] text-muted-foreground tabular-nums" aria-label="Status summary">
           {summary.waiting > 0 ? (
             <span className="flex items-center gap-1 font-semibold text-status-waiting" title="Needs you">
               <StatusDot status="waiting" className="size-2" />
@@ -47,19 +69,28 @@ export function AppRail({ list, now, onNew }: { list: SessionListState; now: num
       ) : null}
 
       <div className="flex w-full flex-col items-center gap-1.5 border-t pt-3">
+        <RailItem label="Sessions" icon={<LayoutGridIcon />} active={onSessions && !isSetAsideFilter(status)} onClick={kind('all')} />
+        <RailItem label="Bots" title="Sessions started by bots" icon={<BotIcon />} count={counts?.scheduled} active={onSessions && status === 'scheduled'} onClick={kind('scheduled')} />
+        <RailItem label="Slack" title="Sessions linked to Slack" icon={<MessagesSquareIcon />} count={counts?.slack} active={onSessions && status === 'slack'} onClick={kind('slack')} />
+        {shown.has('embedded') ? (
+          <RailItem label="Apps" title="Sessions started from an app's Fleet panel" icon={<AppWindowIcon />} count={counts?.embedded} active={onSessions && status === 'embedded'} onClick={kind('embedded')} />
+        ) : null}
         <ModuleRailItems />
       </div>
 
       <div className="mt-auto flex w-full flex-col items-center gap-1.5 border-t pt-3">
-        {fleet ? (
-          <a
-            href="#/usage"
-            aria-label="Usage limits"
-            className="grid w-full grid-cols-2 gap-1 rounded-md py-1 text-[0.625rem] outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/50"
-          >
-            <UsageMeters host={fleet.self} now={now} meterClassName="flex-col gap-0.5" />
-          </a>
-        ) : null}
+        <a
+          href="#/bots"
+          aria-label="Bot schedules"
+          aria-current={location === '/bots' ? 'page' : undefined}
+          title={withHint('Bot schedules', 'jobs')}
+          className={cn(
+            'grid size-7 place-items-center rounded-lg text-dimmer outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 [&_svg]:size-4',
+            location === '/bots' && 'bg-accent text-accent-foreground',
+          )}
+        >
+          <CalendarClockIcon />
+        </a>
         <HostShellButtons />
         <FocusToggle size="icon-sm" />
         <ModuleButtons size="icon-sm" group="utility" exclude={['usage']} />
