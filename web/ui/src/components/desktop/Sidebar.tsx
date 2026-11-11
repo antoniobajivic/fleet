@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button'
 import { useNotesHosts } from '@/hooks/useNotes'
 import { useFlip } from '@/hooks/useFlip'
 import type { SessionListState } from '@/hooks/useSessionList'
-import { allSessions, stackRuns } from '@/lib/sessions'
+import { allSessions, isSetAsideFilter, stackRuns } from '@/lib/sessions'
 import { sessionKey, withHint } from '@/lib/shortcuts'
 import { cn } from '@/lib/utils'
 
@@ -25,7 +25,8 @@ export interface SidebarProps {
 
 /** Desktop left column under the top bar (TopBar): the session list, dormant and recently closed. */
 export function Sidebar({ list, now, cursorKey, selectedKey }: SidebarProps) {
-  const { fleet, error, query, host, view, unreachable, setFrozen } = list
+  const { fleet, error, query, host, status, view, unreachable, setFrozen } = list
+  const withHistory = fleet && !isSetAsideFilter(status)
   const listRef = useRef<HTMLDivElement>(null)
   useFlip(listRef, view.sessions.map(sessionKey).join(' '))
 
@@ -86,8 +87,8 @@ export function Sidebar({ list, now, cursorKey, selectedKey }: SidebarProps) {
             {allSessions(fleet).length > 0 ? 'Nothing matches.' : 'No Claude sessions running.'}
           </div>
         ) : null}
-        {fleet ? <DormantSection now={now} host={host} query={query} desktop className="mt-4" /> : null}
-        {fleet ? <ClosedSection now={now} host={host} query={query} desktop className="mt-3" /> : null}
+        {withHistory ? <DormantSection now={now} host={host} query={query} desktop className="mt-4" /> : null}
+        {withHistory ? <ClosedSection now={now} host={host} query={query} desktop className="mt-3" /> : null}
       </div>
 
     </div>

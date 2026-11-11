@@ -2,6 +2,8 @@ import { expect, test } from 'vitest'
 
 import type { FleetResponse, Session } from '@/api/types'
 import {
+  isSetAsideFilter,
+  STATUS_FILTERS,
   clusterByStack,
   stackRuns,
   findSession,
@@ -244,6 +246,9 @@ test('listView: job sessions only under Scheduled, except waiting ones', () => {
   expect(visibleStatusFilters(all.counts, 'all').map((x) => x.id)).toContain('scheduled')
   expect(visibleStatusFilters({ ...all.counts, scheduled: 0 }, 'all').map((x) => x.id)).not.toContain('scheduled')
   expect(visibleStatusFilters({ ...all.counts, scheduled: 0 }, 'scheduled').map((x) => x.id)).toContain('scheduled')
+
+  // Dormant / Closed carry no origin: they show under Sessions only, never under Bots / Slack / Apps.
+  expect(STATUS_FILTERS.filter((x) => isSetAsideFilter(x.id)).map((x) => x.id)).toEqual(['scheduled', 'slack', 'embedded'])
 })
 
 test('embed sessions: set aside like bot sessions, in their own Apps filter', () => {

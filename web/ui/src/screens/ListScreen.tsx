@@ -27,7 +27,7 @@ import { useSettings } from '@/hooks/useSettings'
 import { useNow } from '@/hooks/useNow'
 import { ALL_HOSTS, useSessionList } from '@/hooks/useSessionList'
 import { pullIntent } from '@/lib/gestures'
-import { allSessions, stackRuns, findStatusFilter } from '@/lib/sessions'
+import { allSessions, stackRuns, findStatusFilter, isSetAsideFilter } from '@/lib/sessions'
 import { cn } from '@/lib/utils'
 
 export function ListScreen() {
@@ -250,8 +250,8 @@ export function ListScreen() {
             <EmptyState anySessions={allSessions(fleet).length > 0} />
           ) : null}
 
-          {fleet ? <DormantSection now={now} host={host} query={query} className="mt-6" /> : null}
-          {fleet ? <ClosedSection now={now} host={host} query={query} className="mt-4" /> : null}
+          {fleet && !isSetAsideFilter(status) ? <DormantSection now={now} host={host} query={query} className="mt-6" /> : null}
+          {fleet && !isSetAsideFilter(status) ? <ClosedSection now={now} host={host} query={query} className="mt-4" /> : null}
         </div>
       </main>
 

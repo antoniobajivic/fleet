@@ -74,6 +74,11 @@ export function visibleStatusFilters(counts: Record<StatusFilterId, number> | nu
   return STATUS_FILTERS.filter((f) => !SET_ASIDE.includes(f.id) || current === f.id || (counts?.[f.id] ?? 0) > 0)
 }
 
+/** Bots / Slack / Apps: a view of live sessions only, so no Dormant or Closed sections under it. */
+export function isSetAsideFilter(id: StatusFilterId): boolean {
+  return SET_ASIDE.includes(id)
+}
+
 export function findStatusFilter(id: string | null | undefined): StatusFilter {
   return STATUS_FILTERS.find((f) => f.id === id) ?? STATUS_FILTERS[0]
 }
